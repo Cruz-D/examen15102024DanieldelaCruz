@@ -1,0 +1,384 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carta de Hamburguesas</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+
+    <style>
+        /* Estilos básicos del modal */
+        .menu-modal {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .menu-column {
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .menu-column h3 {
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        .totalCelda {
+            border-top: 3px solid black;
+            
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Botón para abrir el modal -->
+    <button id="abrirModal">Ver Carta de Hamburguesas</button>
+
+    <button id="abrirFactura">Obtener factura final</button>
+
+    <!-- Tabla para mostrar la factura -->
+    <h2>Factura</h2>
+    <table id="factura" style="width: 50%; text-align: center; margin-top: 20px;">
+        <caption><h3>Hamburgueseria</h3></caption>
+        <thead>
+            <tr>
+                <th >Producto</th>
+                <th>PVP</th>
+                <th>Cantidad</th>
+                <th>precio</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aquí se van a insertar las filas dinámicamente -->
+            <tr id="filaTotal">
+                <td></td>
+                <td></td>
+                <td>TOTAL</td>
+                <td id="totalCelda" class="totalCelda"></td>
+
+            </tr>
+        </tbody>
+    </table>
+
+    <div id="factura-modal" title="Caja" style="display:none;">
+        <p id="pPrecionFinal"></p>
+    </div>
+
+
+    <!-- Modal de jQuery UI (contenido generado dinámicamente con jQuery) -->
+    <div id="menu-modal" title="Carta de Hamburguesas" style="display:none;">
+
+    </div>
+
+    <script>
+        $(document).ready(function () {
+
+            /***********************************************************************/
+            /* VARIABLES  **********************************************************/
+            /***********************************************************************/
+
+            // Arrays con los datos del menú
+            const hamburguesas = [
+
+                { id: 1, nombre: "Hamburguesa Clásica", precio: 5.99 },
+                { id: 2, nombre: "Hamburguesa BBQ", precio: 6.99 },
+                { id: 3, nombre: "Hamburguesa Doble Queso", precio: 7.49 },
+                { id: 4, nombre: "Hamburguesa Vegana", precio: 6.49 }
+
+            ];
+
+            const bebidas = [
+
+                { id: 1, nombre: "Coca-Cola", precio: 1.99 },
+                { id: 2, nombre: "Fanta", precio: 1.99 },
+                { id: 3, nombre: "Cerveza Artesanal", precio: 2.99 },
+                { id: 4, nombre: "Agua Mineral", precio: 1.49 }
+
+            ];
+
+            const postres = [
+
+                { id: 1, nombre: "Helado de Vainilla", precio: 2.49 },
+                { id: 2, nombre: "Tarta de Manzana", precio: 3.99 },
+                { id: 3, nombre: "Brownie", precio: 2.99 },
+                { id: 4, nombre: "Batido de Chocolate", precio: 2.49 }
+
+            ];
+
+            // Array para almacenar los productos seleccionados
+            const factura = [];
+
+            /***********************************************************************/
+            /* EJECUCION  **********************************************************/
+            /***********************************************************************/
+
+            // boton de la factura oculto
+            $("#abrirFactura").hide();
+
+            // boton de la factura oculto
+            $("#factura").hide();
+
+            // Abrir el modal y generar el contenido dinámicamente al hacer clic en el botón
+            $("#abrirModal").on('click', function () {
+
+                // Genera el contenido del modal
+                generarMenu();
+
+                // Abrir el modal
+                $("#menu-modal").dialog("open");
+            });
+
+            // Inicializar modal
+            $("#menu-modal").dialog({
+                autoOpen: false,
+                width: 800,
+                modal: true,
+                buttons: {
+                    "Aceptar": function () {
+
+                        // Procesar la selección de productos
+                        procesarSeleccionProducto("Hamburguesas", hamburguesas);
+                        procesarSeleccionProducto("Bebidas", bebidas);
+                        procesarSeleccionProducto("Postres", postres);
+
+                        // Actualizar la tabla de factura
+                        agregarAFactura(factura);
+
+                        //mostrar la tabla ons los datos del pedido
+                        $("#factura").show();
+
+                        // Cerrar el modal
+                        $(this).dialog("close");
+
+                    },
+                    "Cancelar": function () {
+
+
+                        $(this).dialog("close");
+                    }
+                }
+            });
+
+            //boton para abrir la factura taotal
+            $("#abrirFactura").on('click', function () {
+
+                $("#factura-modal").dialog("open");
+
+            });
+
+            //inicializar el modal de la factura
+            $("#factura-modal").dialog({
+
+                autoOpen: false, 
+                modal: true, 
+                buttons: {
+                    "Cerrar": {
+                       
+                        icon: "ui-icon-print",
+
+                        click: function () {
+
+                            limpiarTabla();
+
+                            $(this).dialog("close");
+                        }
+             
+                    }
+                }
+            });
+
+
+            /***********************************************************************/
+            /* FUNCIONES DEL CODIGO  ***********************************************/
+            /***********************************************************************/
+
+
+            // Función para generar el HTML del menú basado en los arrays
+            function generarMenu() {
+
+                const hamburguesasHtml = generarDropdownHtml("Hamburguesas", hamburguesas);
+                const bebidasHtml = generarDropdownHtml("Bebidas", bebidas);
+                const postresHtml = generarDropdownHtml("Postres", postres);
+
+                $("#menu-modal").html(`
+                                    <div class="menu-modal">
+                                        ${hamburguesasHtml}
+                                        ${bebidasHtml}
+                                        ${postresHtml}
+                                    </div>
+                                `);
+            }
+
+            // Función para generar el HTML de un dropdown del menú
+            function generarDropdownHtml(titulo/*String*/, productos/*array*/) {
+
+
+                //almacenar html dropdown en una variable
+                let dropdownHtml = `<div class="menu-column">
+                                    <h3>${titulo}</h3>
+                                    <select id="${titulo.toLowerCase()}-select">
+                                        <option value="">Seleccione una opción</option>`;
+
+                //recorrer array productos para rellenar los dropdown
+                productos.forEach(producto => {
+
+                    //pintar contenido de los dorwpdown
+                    dropdownHtml += `<option id="option${titulo}${producto.id}"
+                            data-precio="${producto.precio}"
+                            value="${producto.nombre}">
+                                ${producto.nombre} - $${producto.precio}
+                            </option>`;
+                });
+                //añadir selector
+                dropdownHtml += `</select>  <input type="number" id="box${titulo}" min=0> --- Cantidad</div>`;
+                return dropdownHtml;
+            }
+
+            //funcion para validar los productos seleccionadr
+            function procesarSeleccionProducto(tipoProducto/*string*/, productos/*array*/) {
+
+                //seleccionar producto cantidad y precio
+                let productoSeleccionado = $(`#${tipoProducto.toLowerCase()}-select option:selected`).val();
+                let cantidadProducto = $(`#box${tipoProducto}`).val();
+                let precioProducto = $(`#${tipoProducto.toLowerCase()}-select option:selected`).data("precio");
+
+                //validar si el producto y la cantidad son correctos
+                if (productoSeleccionado && cantidadProducto > 0) {
+
+                    // Verificar si el producto ya está en el carrito
+                    let productoExistente = factura.find(p => p.producto === productoSeleccionado);
+
+                    if (productoExistente) {
+
+                        // Si el producto ya está en el carrito, se añade más cantidad
+                        productoExistente.cantidad += parseInt(cantidadProducto);
+
+                    } else {
+
+                        // Si no está en el carrito, se añade como nuevo producto
+                        factura.push({
+                            producto: productoSeleccionado,
+                            precio: parseFloat(precioProducto).toFixed(2),
+                            cantidad: parseInt(cantidadProducto)
+                        });
+                    }
+
+                }
+            }
+
+            // Función para agregar los productos seleccionados a la factura
+            function agregarAFactura(factura) {
+
+                // Variable para acumular todas las filas
+                let filas = '';  
+
+                // Variable para calcular el total de productos x cantidad
+                let total = 0;
+
+                // Variable para calcular el precio final
+                let precioFinal = 0;
+
+                //recorrer el array factura
+                $.each(factura, function (index, fact) {
+
+                    //calcular el subtotal que se pintara en la columna precio
+                    let subtotal = fact.cantidad * fact.precio;
+
+                    total += subtotal; // Sumar al total
+
+                    // Crear una nueva fila con los datos del producto
+                    let nuevaFila = `
+
+                            <tr>
+                                <td>${fact.producto}</td>
+                                <td>${parseFloat(fact.precio).toFixed(2)} €</td>
+                                <td>${fact.cantidad}</td>
+                                <td>${parseFloat(total).toFixed(2)} </td>
+                            </tr>
+
+                            `;
+
+                    filas += nuevaFila;  // Acumular fila
+
+                    //suamr precio final
+                    precioFinal += total;
+                });
+
+                // Seleccionar la fila de "Total:"
+                const filaEspecifica = $("#filaTotal");
+
+                // Añadir todas las filas al tbody de la tabla
+                filaEspecifica.before(filas);
+
+                // Mostrar el total en la fila de "Total:"
+                $("#totalCelda").text(`${precioFinal.toFixed(2)} €`);
+
+                //deshabilitar boton del menu
+                $("#abrirModal").attr("disabled", true);
+
+                //mostrar boton factura
+                $("#abrirFactura").show();
+
+                //pintar el total en el dialog de la factura
+                $("#pPrecionFinal").text(`Total a Abonar: ${precioFinal.toFixed(2)} €`);
+
+
+            }
+
+            // funcion para limpiar la tabla, setear valores y ocultar botones
+            function limpiarTabla() {
+
+
+                $("#abrirModal").attr("disabled", true);
+
+                $("#factura tbody").empty();
+
+                // Reinsertar la fila de total
+                $("#factura tbody").append(`
+                     <tr id="filaTotal">
+                         <td></td>
+                         <td></td>
+                         <td>TOTAL</td>
+                         <td id="totalCelda"></td>
+                     </tr>
+                 `);
+
+                $("#abrirFactura").hide();
+
+                $("#abrirModal").attr("disabled", false);
+
+                
+            }
+
+            
+
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Cafetera</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+
+        input {
+            margin-top: 10px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div>
+        <!-- Botones para controlar la cafetera -->
+        <button id="btnLlenar" class="ui-button ui-widget ui-corner-all">Llenar la Cafetera</button>
+        <button id="btnVaciar" class="ui-button ui-widget ui-corner-all">Vaciar la Cafetera</button>
+        <button id="btnServir" class="ui-button ui-widget ui-corner-all">Servir una Taza</button>
+        <button id="btnAgregar" class="ui-button ui-widget ui-corner-all">Agregar mas Café</button>
+    </div>
+
+    <!-- Campo de entrada para agregar o servir café -->
+    <div>
+        <label for="cantidad">Cantidad (cc):</label>
+
+        <input type="number" id="cantidad" min="1" placeholder="Ingrese cantidad">
+    </div>
+
+    <!-- Mostrar la cantidad actual de café -->
+    <p id="cantidad-actual">Cantidad actual de café: 0 cc</p>
+
+    <script>
+        // Declaración de clase
+        class Cafetera {
+
+            constructor() {
+
+                this._capacidadMaxima = 500;
+                this._cantidadActual = 0;
+            }
+
+            llenarCafetera() {
+
+                this._cantidadActual = this._capacidadMaxima;
+            }
+
+            vaciarCafetera() {
+
+                this._cantidadActual = 0;
+            }
+
+            agregarCafe(cantidad) {
+
+                if (cantidad > 0) {
+
+                    this._cantidadActual = Math.min(this._cantidadActual + cantidad, this._capacidadMaxima);
+                }
+            }
+
+            servirTaza(cantidad) {
+
+                if (cantidad > 0) {
+
+                    if (this._cantidadActual >= cantidad) {
+
+                        this._cantidadActual -= cantidad;
+
+                    } else {
+
+                        alert("Rellenando la cafetera");
+
+                        this.llenarCafetera();
+                    }
+                }
+            }
+
+            obtenerCantidadActual() {
+
+                return this._cantidadActual;
+            }
+        }
+
+        $(document).ready(function () {
+
+            const cafetera = new Cafetera();
+
+            function actualizarCantidad() {
+
+                $("#cantidad-actual").text(`Queda el siguiente: ${cafetera.obtenerCantidadActual()} cc`);
+            }
+
+            $("#btnLlenar").on('click', function () {
+
+                cafetera.llenarCafetera();
+
+                actualizarCantidad();
+            });
+
+            $("#btnVaciar").on('click', function () {
+
+                cafetera.vaciarCafetera();
+
+                actualizarCantidad();
+            });
+
+            $("#btnServir").on('click', function () {
+
+                const cantidad = parseInt($("#cantidad").val());
+
+                if (cantidad > 0) {
+
+                    cafetera.servirTaza(cantidad);
+
+                    actualizarCantidad();
+
+                } else {
+
+                    alert("introduce una cantidad válida para servir.");
+                }
+            });
+
+            $("#btnAgregar").on('click', function () {
+
+                const cantidad = parseInt($("#cantidad").val());
+
+                if (cantidad > 0) {
+
+                    cafetera.agregarCafe(cantidad);
+
+                    actualizarCantidad();
+
+                } else {
+
+                    alert("introduce una cantidad válida para hacer mas cafe.");
+
+                }
+            });
+        });
+    </script>
+</body>
+</html>
